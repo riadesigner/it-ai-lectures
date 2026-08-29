@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Введение в ИИ</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #12161c;
+      --fg: #eef2f6;
+      --muted: #8b97a8;
+      --accent: #3dbe9a;
+      --line: #2a3340;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Manrope, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 90% 60% at 5% -5%, #2a4a52 0%, transparent 58%),
+        radial-gradient(ellipse 70% 55% at 105% 105%, #2c3548 0%, transparent 52%),
+        radial-gradient(ellipse 50% 40% at 70% 20%, #1e3a36 0%, transparent 45%),
+        var(--bg);
+    }
+
+    .deck {
+      height: 100%;
+      position: relative;
+      outline: none;
+    }
+
+    .deck:focus,
+    .deck:focus-visible {
+      outline: none;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(2rem, 6vw, 4.5rem);
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.25rem;
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .slide.is-active {
+      display: flex;
+      animation: in 280ms ease-out;
+    }
+
+    @keyframes in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .kicker {
+      color: var(--accent);
+      font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.1rem;
+      margin-top: 0.5rem;
+      font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .keys span::before {
+      content: "·";
+      margin-right: 1.1rem;
+      color: var(--accent);
+    }
+
+    .keys span:first-child::before { content: none; margin: 0; }
+
+    .hint {
+      position: fixed;
+      left: 1.25rem;
+      bottom: 1.1rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .counter {
+      position: fixed;
+      right: 1.25rem;
+      bottom: 1.1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 8px;
+      background: var(--accent);
+      width: 0;
+      transition: width 200ms ease;
+    }
+
+    .quiz {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.35rem;
+      font-size: clamp(0.9rem, 1.85vw, 1.15rem);
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .quiz li {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .quiz li::before {
+      content: "?";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      color: var(--accent);
+      font-size: 0.65rem;
+      font-weight: 800;
+      margin-right: 0.55rem;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    .slide--dense {
+      gap: 0.6rem;
+      padding-top: clamp(1.4rem, 3.5vw, 2.75rem);
+      padding-bottom: clamp(1.4rem, 3.5vw, 2.75rem);
+    }
+
+    .quiz--compact {
+      gap: 0.28rem;
+      font-size: clamp(0.78rem, 1.45vw, 0.95rem);
+      line-height: 1.28;
+    }
+
+    .quiz--cols {
+      grid-template-columns: 1fr 1fr;
+      column-gap: 1.25rem;
+    }
+
+    .quiz--plain li::before {
+      content: none;
+    }
+
+    .quiz--plain li {
+      list-style: disc;
+      margin-left: 1.15rem;
+      padding-left: 0.35rem;
+    }
+
+    @media (max-width: 640px) {
+      .hint { display: none; }
+      .quiz--cols { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="deck" id="deck" tabindex="0">
+
+    <section class="slide is-active" data-slide>
+      <p class="kicker">LECT-AI-COMMON-01</p>
+      <h1>Введение в ИИ</h1>
+      <p class="keys"><span>авг 2026</span></p>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Часть 1</p>
+      <h2>Что мы уже знаем про ИИ</h2>
+      <p class="keys"><span>вопросы для обсуждения</span></p>
+      <ul class="quiz">
+        <li>Что вы знаете про ИИ сегодня (что может ИИ, как / где используется)</li>
+        <li>Какие самые известные модели ИИ (и компании) вы знаете</li>
+        <li>Как вы используете ИИ в своей обычной жизни</li>
+        <li>Как вы используете ИИ в работе / учёбе / пет-проектах</li>
+        <li>Что вы знаете о промптах — как их можно улучшить?</li>
+        <li>Как вы сохраняете ответы от ИИ</li>
+        <li>Что вы знаете об ИИ-агентах?</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Часть 2</p>
+      <h2>Как изменились (-ятся) профессии</h2>
+      <p class="keys"><span>Как изменился(-ится):</span></p>
+      <ul class="quiz">
+        <li>процесс создания 2D-3D контента для графического / 3D-дизайнера?</li>
+        <li>процесс проектирования для архитектора?</li>
+        <li>работа писателя над книгой?</li>
+        <li>работа учёных над написанием научных трудов?</li>
+        <li>процесс проверки сочинения в школе?</li>
+        <li>процесс создания 3D контента для игр?</li>
+        <li>процесс создания диалогов для игровых персонажей?</li>
+        <li>работа врачей?</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Часть 2 · продолжение</p>
+      <h2>Как изменились (-ятся) профессии</h2>
+      <p class="keys"><span>Как изменился(-ится):</span></p>
+      <ul class="quiz">
+        <li>процесс создания музыки к фильмам?</li>
+        <li>процесс создания кино?</li>
+        <li>процесс создания видео рекламы?</li>
+        <li>процесс создания сайтов — останутся ли веб-дизайнеры?</li>
+        <li>процесс создания приложений?</li>
+        <li>процесс обучения иностранному языку?</li>
+        <li>процесс создания контента для соцсети?</li>
+        <li>процесс создания контента для маркетплейсов?</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Часть 3</p>
+      <h2>Ответственность за результат</h2>
+      <p class="keys"><span>почему AI не наберёт у вас работу</span></p>
+      <p>Cases</p>
+      <ul class="quiz quiz--plain">
+        <li>call-center (галюцинации)</li>
+        <li>фирменный стиль (awabi, prof-stroi-invest)</li>
+        <li>логотип LEGO</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Часть 4</p>
+      <h2>Кто у кого учится</h2>
+      <p class="keys"><span>исчезающий интерфейс</span></p>
+      <ul class="quiz">
+        <li>Tesla (ручки в автомобиле)</li>
+        <li>Google (Assistant) / будильник, погода, поиск, покупки, ...</li>
+        <li>Apple (Siri)</li>
+        <li>Что произошло в 2021 году (с приходом GPT-4)</li>
+        <li>Коммуникация (6 чел)</li>
+        <li>Кролик</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <p class="hint">← → · пробел · клик</p>
+  <p class="counter"><span id="current">1</span> / <span id="total">6</span></p>
+
+  <script>
+    const slides = [...document.querySelectorAll("[data-slide]")];
+    const currentEl = document.getElementById("current");
+    const totalEl = document.getElementById("total");
+    const progress = document.getElementById("progress");
+    let index = 0;
+
+    totalEl.textContent = String(slides.length);
+
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach((s, n) => s.classList.toggle("is-active", n === index));
+      currentEl.textContent = String(index + 1);
+      progress.style.width = ((index + 1) / slides.length) * 100 + "%";
+      history.replaceState(null, "", "#" + (index + 1));
+    }
+
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+        e.preventDefault();
+        next();
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        prev();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        show(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        show(slides.length - 1);
+      }
+    });
+
+    document.getElementById("deck").addEventListener("click", (e) => {
+      if (e.target.closest("a")) return;
+      const x = e.clientX / window.innerWidth;
+      if (x < 0.28) prev();
+      else next();
+    });
+
+    const fromHash = parseInt(location.hash.slice(1), 10);
+    show(Number.isFinite(fromHash) && fromHash >= 1 ? fromHash - 1 : 0);
+    document.getElementById("deck").focus();
+  </script>
+</body>
+</html>
