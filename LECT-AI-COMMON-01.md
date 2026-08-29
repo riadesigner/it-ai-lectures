@@ -55,7 +55,9 @@ Cases:
 - Коммуникация (6 чел)
 - Кролик
 
+## часть 5. AI-native people
 
-
-
+- digital native
+- AI native
+- Второй мозг
 
