@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Промпт-инжиниринг: ключевые термины и базовые техники</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg: #12161c;
+      --fg: #eef2f6;
+      --muted: #8b97a8;
+      --accent: #3dbe9a;
+      --line: #2a3340;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: Manrope, system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    body {
+      background:
+        radial-gradient(ellipse 90% 60% at 5% -5%, #2a4a52 0%, transparent 58%),
+        radial-gradient(ellipse 70% 55% at 105% 105%, #2c3548 0%, transparent 52%),
+        radial-gradient(ellipse 50% 40% at 70% 20%, #1e3a36 0%, transparent 45%),
+        var(--bg);
+    }
+
+    .deck {
+      height: 100%;
+      position: relative;
+      outline: none;
+    }
+
+    .deck:focus,
+    .deck:focus-visible {
+      outline: none;
+    }
+
+    .slide {
+      display: none;
+      height: 100%;
+      padding: clamp(2rem, 6vw, 4.5rem);
+      flex-direction: column;
+      justify-content: center;
+      gap: 1.25rem;
+      max-width: 56rem;
+      margin: 0 auto;
+    }
+
+    .slide.is-active {
+      display: flex;
+      animation: in 280ms ease-out;
+    }
+
+    @keyframes in {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .kicker {
+      color: var(--accent);
+      font-size: clamp(0.85rem, 1.6vw, 1.05rem);
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      font-size: clamp(2.4rem, 6vw, 4.2rem);
+      font-weight: 800;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+    }
+
+    h2 {
+      font-size: clamp(1.9rem, 4.5vw, 3.2rem);
+      font-weight: 800;
+      line-height: 1.15;
+      letter-spacing: -0.02em;
+    }
+
+    .keys {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.1rem;
+      margin-top: 0.5rem;
+      font-size: clamp(1.15rem, 2.4vw, 1.55rem);
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    .keys span::before {
+      content: "·";
+      margin-right: 1.1rem;
+      color: var(--accent);
+    }
+
+    .keys span:first-child::before { content: none; margin: 0; }
+
+    .theses {
+      display: grid;
+      gap: 0.85rem;
+      margin-top: 0.75rem;
+      font-size: clamp(1.05rem, 2.2vw, 1.45rem);
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .theses li {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .theses li::before {
+      content: "";
+      display: inline-block;
+      width: 0.55rem;
+      height: 0.55rem;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 0.75rem;
+      vertical-align: middle;
+    }
+
+    .hint {
+      position: fixed;
+      left: 1.25rem;
+      bottom: 1.1rem;
+      color: var(--muted);
+      font-size: 0.8rem;
+      opacity: 0.7;
+    }
+
+    .counter {
+      position: fixed;
+      right: 1.25rem;
+      bottom: 1.1rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .progress {
+      position: fixed;
+      left: 0;
+      top: 0;
+      height: 8px;
+      background: var(--accent);
+      width: 0;
+      transition: width 200ms ease;
+    }
+
+    .slide--dense {
+      gap: 0.6rem;
+      padding-top: clamp(1.4rem, 3.5vw, 2.75rem);
+      padding-bottom: clamp(1.4rem, 3.5vw, 2.75rem);
+    }
+
+    .prompt {
+      font-family: "JetBrains Mono", ui-monospace, monospace;
+      font-size: clamp(0.9rem, 1.7vw, 1.15rem);
+      line-height: 1.28;
+      font-weight: 500;
+      color: color-mix(in srgb, var(--fg) 82%, var(--muted));
+      white-space: pre-wrap;
+      background: color-mix(in srgb, var(--line) 50%, transparent);
+      border: 1px solid var(--line);
+      border-radius: 0.45rem;
+      padding: 0.75rem 0.9rem;
+      max-height: min(62vh, 28rem);
+      overflow-y: auto;
+    }
+
+    .quiz {
+      display: grid;
+      gap: 0.45rem;
+      margin-top: 0.35rem;
+      font-size: clamp(0.9rem, 1.85vw, 1.15rem);
+      font-weight: 500;
+      color: var(--muted);
+      line-height: 1.35;
+    }
+
+    .quiz li {
+      list-style: none;
+      padding-left: 0;
+    }
+
+    .quiz li::before {
+      content: "?";
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.15rem;
+      height: 1.15rem;
+      border-radius: 50%;
+      border: 1px solid color-mix(in srgb, var(--accent) 55%, var(--line));
+      color: var(--accent);
+      font-size: 0.65rem;
+      font-weight: 800;
+      margin-right: 0.55rem;
+      vertical-align: middle;
+      flex-shrink: 0;
+    }
+
+    @media (max-width: 640px) {
+      .hint { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="deck" id="deck" tabindex="0">
+
+    <section class="slide is-active" data-slide>
+      <p class="kicker">LECT-AI-03 · часть 1</p>
+      <h1>Промпт-инжиниринг</h1>
+      <p class="keys"><span>ключевые термины и базовые техники</span><span>авг 2026</span></p>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Введение</p>
+      <h2>Hard prompting</h2>
+      <p class="keys"><span>префиксные промпты на естественном языке</span></p>
+      <ul class="theses">
+        <li>термин «промпт-инжиниринг» распространился в сети с 2021 года</li>
+        <li>промпт = ТЗ для модели; шаблон = форма под разные входы</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Термины</p>
+      <h2>Шаблон vs экземпляр</h2>
+      <p class="keys"><span>prompt template · prompt instance</span></p>
+      <ul class="theses">
+        <li>шаблон — заготовка с переменными для повторного использования</li>
+        <li>экземпляр — конкретный запрос после подстановки данных</li>
+        <li>шаблон — инструмент мышления: ничего не забыть, задача чёткая</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Пример · шаблон</p>
+      <h2>План тренировок</h2>
+      <pre class="prompt">Ты — профессиональный фитнес-тренер.
+Составь план тренировок для [ЦЕЛЬ: похудение / набор массы / поддержка тонуса].
+Уровень подготовки: [НАЧАЛЬНЫЙ / СРЕДНИЙ / ПРОДВИНУТЫЙ].
+Доступный инвентарь: [СПИСОК].
+Количество тренировок в неделю: [ЧИСЛО].
+
+Ответ дай в виде списка по дням недели.
+Каждое упражнение опиши в 1 предложении.
+Общая длительность одной тренировки — не более [ВРЕМЯ] минут.</pre>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Структура промпта</p>
+      <h2>Компоненты</h2>
+      <p class="keys"><span>универсальный набор из 6 частей</span></p>
+      <ul class="theses">
+        <li>роль — кем «быть» модели (narrative designer, баланс-дизайнер)</li>
+        <li>директива / задача — явная инструкция или вопрос</li>
+        <li>примеры — образцы выполнения (one-shot, few-shot)</li>
+        <li>формат выдачи — CSV, Markdown, JSON, таблица</li>
+        <li>инструкции по стилю — тон, лаконичность, жанр</li>
+        <li>доп. информация — сеттинг, имена, ограничения проекта</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Связь с лекцией 2</p>
+      <h2>RCTF ↔ компоненты</h2>
+      <p class="keys"><span>одна схема — разные названия</span></p>
+      <ul class="theses">
+        <li>Role → роль · Context → доп. информация</li>
+        <li>Task → директива · Format → формат выдачи</li>
+        <li>Constraints → стиль + ограничения</li>
+        <li>частая ошибка: только «придумай квест» без формата и контекста</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Термины</p>
+      <h2>Промптинг vs инжиниринг</h2>
+      <p class="keys"><span>разговор vs отладка рецепта</span></p>
+      <ul class="theses">
+        <li>промптинг — любое взаимодействие с моделью через промпты</li>
+        <li>цепочка промптов — ответ первого → вход для второго</li>
+        <li>техника промптинга — схема построения промпта или цепочки</li>
+        <li>промпт-инжиниринг — итеративный поиск: тест → оценка → правка</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Промпт-инжиниринг</p>
+      <h2>Цикл из 3 шагов</h2>      
+      <ul class="theses">
+        <li>прогнать промпт на наборе примеров (квесты, NPC-реплики)</li>
+        <li>оценить качество: формат, лор, играбельность</li>
+        <li>отредактировать шаблон и повторить · A/B промптов, итерация по RCTF</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Обзор техник</p>
+      <h2>Текстовые техники</h2>
+      <p class="keys"><span>The Prompt Report · 6 категорий</span></p>
+      <ul class="theses">
+        <li>Few-Shot · Zero-Shot · Chain-of-Thought</li>
+        <li>Ensembling · Self-Criticism · Decomposition</li>
+        <li>в этой лекции — few-shot и zero-shot;</li>
+        <li>всего насчитвается ~ 58 текстовых техник</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">In-Context Learning</p>
+      <h2>ICL</h2>
+      <p class="keys"><span>адаптация без обновления весов</span></p>
+      <ul class="theses">
+        <li>модель подстраивается под задачу за счёт примеров и инструкций в промпте</li>
+        <li>нужна конкретная инструкция, чтобы активировать нужное поведение</li>
+        <li>meta-learning шире — на этапе pre-training; ICL — в одном запросе</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Few-shot</p>
+      <h2>Few-shot промптинг</h2>
+      <p class="keys"><span>примеры «вход → выход» в промпте</span></p>
+      <ul class="theses">
+        <li>несколько примеров помогают уловить закономерность</li>
+        <li>разновидность few-shot learning, но без дообучения модели</li>
+        <li>few-shot = 2–3 образца диалога NPC в нужном тоне</li>
+        <li>zero-shot = только инструкция «пиши как смотритель маяка»</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Few-shot · шаблон</p>
+      <h2>Базовая схема</h2>
+      <pre class="prompt">Пример 1: {вход} → {выход}
+Пример 2: {вход} → {выход}
+Задача: {тестовый вход} → ?</pre>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Few-shot · отбор примеров</p>
+      <h2>Принципы 1–3</h2>
+      <ul class="theses">
+        <li>количество — больше часто лучше; &gt;20 может не помочь или ухудшить</li>
+        <li>порядок — перестановка может менять точность (50% → 90%)</li>
+        <li>распределение меток — перекос → предвзятые ответы</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Few-shot · отбор примеров</p>
+      <h2>Принципы 4–6</h2>
+      <ul class="theses">
+        <li>качество меток — крупные модели устойчивее к шуму</li>
+        <li>формат — единый (`Q: … A: …`), ближе к обучающим данным</li>
+        <li>инструкция — иногда достаточно только примеров; лишняя может снизить качество</li>
+        <li>ошибка: 10 примеров «как попало» → нестабильный результат</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Zero-shot</p>
+      <h2>Zero-shot промптинг</h2>
+      <p class="keys"><span>без примеров — только инструкция</span></p>
+      <ul class="theses">
+        <li>роль, стиль, контекст — по необходимости</li>
+        <li>когда zero-shot: быстрый черновик, широкая задача, нет эталонов</li>
+        <li>когда few-shot: строгий формат, тон, классификация по образцу</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Zero-shot · техники</p>
+      <h2>Role · Style · Emotion</h2>
+      <ul class="theses">
+        <li>Role / Persona — «ты — narrative designer indie-RPG…»</li>
+        <li>Style — задать тон, жанр без смены роли</li>
+        <li>Emotion — психологические триггеры («Это важно для моей карьеры»)</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Zero-shot · техники</p>
+      <h2>S2A · SimToM · RaR</h2>
+      <ul class="theses">
+        <li>S2A — сначала очистить промпт от лишнего, потом ответ</li>
+        <li>SimToM — «Что знает персонаж X?» → ответ с его точки зрения</li>
+        <li>RaR — перефразируй и уточни вопрос, затем ответь</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Zero-shot · техники</p>
+      <h2>RE2 · Self-Ask</h2>
+      <ul class="theses">
+        <li>RE2 — добавить «Ещё раз прочитай вопрос»</li>
+        <li>Self-Ask — модель задаёт уточняющие вопросы, потом финальный ответ</li>        
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">Пример · SimToM</p>
+      <h2>Ложные убеждения</h2>
+      <p class="keys"><span>не путать знание персонажа с фактом</span></p>
+      <ul class="theses">
+        <li>«Джим положил мяч в коробку. Ави переложил в корзину»</li>
+        <li>шаг 1: «Что знает Джим?» · шаг 2: «Где мяч по мнению Джима?»</li>
+        <li>для gamedev: NPC не знают событий off-screen</li>
+      </ul>
+    </section>
+
+    <section class="slide" data-slide>
+      <p class="kicker">На курсе</p>
+      <h2>Zero-shot для gamedev</h2>
+      <p class="keys"><span>практические применения</span></p>
+      <ul class="theses">
+        <li>Role — «ты гейм-дизайнер roguelike на мобилках»</li>
+        <li>Style — «реплики по 1 предложению, без modern сленга»</li>
+        <li>RaR / Self-Ask — размытый бриф от продюсера: сначала уточнить scope</li>
+      </ul>
+    </section>
+
+    <section class="slide slide--dense" data-slide>
+      <p class="kicker">Самоконтроль</p>
+      <h2>Вопросы для самоконтроля</h2>
+      <p class="keys"><span>ответьте своими словами</span></p>
+      <ul class="quiz">
+        <li>Что такое шаблон промпта и чем он отличается от экземпляра?</li>
+        <li>Назови 4–6 компонентов промпта.</li>
+        <li>Чем промптинг отличается от промпт-инжиниринга?</li>
+        <li>Какие бывают текстовые техники промпта?</li>
+        <li>Что такое In-Context Learning?</li>
+        <li>Когда уместен few-shot, а когда zero-shot?</li>
+        <li>Назови 2–3 принципа отбора few-shot примеров.</li>
+        <li>Для чего Role Prompting и SimToM?</li>
+      </ul>
+    </section>
+
+  </div>
+
+  <p class="hint">← → · пробел · клик</p>
+  <p class="counter"><span id="current">1</span> / <span id="total">20</span></p>
+
+  <script>
+    const slides = [...document.querySelectorAll("[data-slide]")];
+    const currentEl = document.getElementById("current");
+    const totalEl = document.getElementById("total");
+    const progress = document.getElementById("progress");
+    let index = 0;
+
+    totalEl.textContent = String(slides.length);
+
+    function show(i) {
+      index = Math.max(0, Math.min(slides.length - 1, i));
+      slides.forEach((s, n) => s.classList.toggle("is-active", n === index));
+      currentEl.textContent = String(index + 1);
+      progress.style.width = ((index + 1) / slides.length) * 100 + "%";
+      history.replaceState(null, "", "#" + (index + 1));
+    }
+
+    function next() { show(index + 1); }
+    function prev() { show(index - 1); }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " " || e.key === "PageDown") {
+        e.preventDefault();
+        next();
+      } else if (e.key === "ArrowLeft" || e.key === "PageUp") {
+        e.preventDefault();
+        prev();
+      } else if (e.key === "Home") {
+        e.preventDefault();
+        show(0);
+      } else if (e.key === "End") {
+        e.preventDefault();
+        show(slides.length - 1);
+      }
+    });
+
+    document.getElementById("deck").addEventListener("click", (e) => {
+      if (e.target.closest("a")) return;
+      const x = e.clientX / window.innerWidth;
+      if (x < 0.28) prev();
+      else next();
+    });
+
+    const fromHash = parseInt(location.hash.slice(1), 10);
+    show(Number.isFinite(fromHash) && fromHash >= 1 ? fromHash - 1 : 0);
+    document.getElementById("deck").focus();
+  </script>
+</body>
+</html>
