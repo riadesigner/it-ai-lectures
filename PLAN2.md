@@ -1,5 +1,8 @@
 # Темы следующих лекций
 
+Что такое RAG
+https://chat.deepseek.com/a/chat/s/ec282148-3cd9-402c-9f15-8dca65ebcbc6
+
 Agent ai 26 (free альтернативы claude code)
 
 Для чего нужен OpenRouter   
